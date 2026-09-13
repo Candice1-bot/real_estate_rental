@@ -25,7 +25,6 @@ const SettingsForm = ({
   };
 
   const handleSubmit = async (data: SettingsFormData) => {
-    console.log("Submitting data:", data);
     await onSubmit(data);
     setEditMode(false);
   };

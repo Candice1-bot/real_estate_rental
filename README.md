@@ -1,24 +1,149 @@
-# [Real Estate Rental App](https://main.d1ulictba92089.amplifyapp.com/)
+# Overview
 
-A full-stack rental platform for browsing properties, applying online, and managing rental workflows from both the tenant and property-manager sides.
+This is a full-stack real-estate rental platform for browsing properties, applying online, and managing rental workflows from both the tenant and property-manager sides.
+It extended and updated EdRoh's original tutorial.
 
-The project is organised as a split client/server application:
+## 1. Key Difference
 
-- **`client/`**: Next.js 15 + React 19 frontend
-- **`server/`**: Express + Prisma backend
-- **Database**: PostgreSQL with **PostGIS** for geospatial property data
+- add a ai chatbot for user to query.
+- add unit tests and integration tests for server app, and cover all the endpoints.
 
-## Overview
+## 2. Project Structure
+
+```
+client/
+   ├──public
+   ├──src
+   │   ├──app
+   │   │   ├──(auth)      //for Cognito-based authentication setup
+   │   │   │    └──(auth)
+   │   │   ├──(dashboard)
+   │   │   │      ├──managers
+   │   │   │      │     ├── [id]
+   │   │   │      │     │    └──page.tsx
+   │   │   │      │     ├── applications
+   │   │   │      │     │    └──page.tsx
+   │   │   │      │     ├── newProperty
+   │   │   │      │     │    └──page.tsx
+   │   │   │      │     ├── properties
+   │   │   │      │     │    └──page.tsx
+   │   │   │      │     ├── settings
+   │   │   │      │     │    └──page.tsx
+   │   │   │      ├──tenants
+   │   │   │      │     ├── applications
+   │   │   │      │     │       └──page.tsx
+   │   │   │      │     ├── favorites
+   │   │   │      │     │       └──page.tsx
+   │   │   │      │     ├── residences
+   │   │   │      │     │       ├── [id]
+   │   │   │      │     │             └──page.tsx
+   │   │   │      │     │       └──page.tsx
+   │   │   ├──(nondashboard)
+   │   │   │      ├──landing
+   │   │   │      │     └──page.tsx
+   │   │   │      ├──search
+   │   │   │      │     └──page.tsx
+   │   │   ├──layout.tsx
+   │   │   ├──page.tsx
+   │   │   ├──providers.tsx
+   │   ├──components
+   │   ├──hooks
+   │   ├──lib
+   │   ├──state   //Global search and UI state is managed with Redux, while data fetching is handled through RTK Query.
+   │   └──types
+   └── package.json
+
+server/
+  ├──src/
+  │   ├── controllers
+  │   ├── middleware
+  │   ├── routes
+  │   ├── test
+  │   │     ├── unit
+  │   │     └── integration
+  ├── prisma
+  │   │   ├── migrations/
+  │   │   ├── schema.prisma
+  │   │   └── seeddata
+  └── package.json
+
+```
+
+## 3. Webpage Structure
+
+```
+need no authentication:
+
+- / ----- landing page
+- /landing ----- landing page
+- /search ----- search page
+
+need authentication: role: manager
+
+- /managers/applications    ----RApprove or deny applications
+- /managers/newProperty     ----Create new property listings
+- /managers/properties      ----View manager-owned properties
+- /managers/properties/:id  ----eview applications
+- /managers/settings        ----Settings management
+
+
+need authentication: role: tenant
+
+- /tenants/applications     ----Rental applications with status display
+- /tenants/favorites        ----Favorite properties
+- /tenants/residences       ----Current residences
+- /tenants/residences/:id
+- /tenants/settings         ----Settings management
+```
+
+## 4. Server api endpoints Structure
+
+```
+no auth:
+/api/chat                                  |POST
+
+only for tenants
+/tenants                                   |POST
+/tenants/:cognitoId                        |GET, PUT
+/tenants/:cognitoId/current-residences     |GET
+/tenants/:cognitoId/favorites/:propertyId  |POST, DELETE
+
+only for managers
+/managers                                  |POST
+/managers/:cognitoId                       |GET, PUT
+/managers/:cognitoId/properties            |GET
+
+mix auth
+/properties                                |GET     |no need
+/properties/:id                            |GET     |no need
+/properties                                |POST    |manager
+
+mix auth
+/applications                              |POST    |tenant
+/applications                              |GET     |manager, tenant
+/applications/:id/status                   |PUT     |manager
+
+mix auth
+/leases                                    |GET     |manager, tenant
+/leases/:id/payments                       |GET     |manager, tenant
+```
+
+## 5. How to log in:
+
+After setup and fill in environment variables(including AWS Cognito Setting), Users need to sign up and then sign in.
+
+## 6. Minor updates:
+
+## 7. Features:
 
 This application is designed around three user experiences:
 
-1. **Public users / prospective tenants** can browse listings, search by location, view properties on a map, open a detailed property page, and submit rental applications.
-2. **Tenants** can sign in, save favorites, track applications, and view their current residences.
-3. **Managers** can sign in, create new property listings, review incoming applications, and manage their property portfolio.
+1. Public users / prospective tenants can browse listings, search by location, view properties on a map, open a detailed property page, and submit rental applications.
+2. Tenants can sign in, save favorites, track applications, and view their current residences.
+3. Managers can sign in, create new property listings, review incoming applications, and manage their property portfolio.
 
-## Features
+#### Public property discovery
 
-### Public property discovery
 - Landing page with a marketing-style homepage and call-to-action sections
 - Search page with:
   - location search
@@ -31,25 +156,14 @@ This application is designed around three user experiences:
   - interactive map view using Mapbox
 - Property detail page with overview, details, location, image preview, and application entry point
 
-### Authentication and roles
+#### Authentication and roles
+
 - AWS Amplify / Cognito-based sign-in and sign-up flow
 - User role selection during sign-up (**Tenant** or **Manager**)
 - Route-level role gating for tenant and manager API routes
 
-### Tenant dashboard
-- Favorite properties
-- Rental applications with status display
-- Current residences
-- Settings management
+#### Backend rental workflow
 
-### Manager dashboard
-- View manager-owned properties
-- Create new property listings
-- Review applications by status
-- Approve or deny applications
-- Settings management
-
-### Backend rental workflow
 - Property CRUD foundation with property creation currently implemented for managers
 - Multi-criteria property filtering on the backend
 - Geospatial querying using PostGIS coordinates
@@ -58,9 +172,10 @@ This application is designed around three user experiences:
 - Lease and payment domain models
 - Application creation and status updates
 
-## Tech stack
+## 8. Tech stack
 
-### Frontend
+#### Frontend: client/
+
 - Next.js 15
 - React 19
 - TypeScript
@@ -72,7 +187,8 @@ This application is designed around three user experiences:
 - Mapbox GL JS
 - AWS Amplify UI
 
-### Backend
+#### Backend
+
 - Node.js
 - Express 5
 - TypeScript
@@ -83,29 +199,12 @@ This application is designed around three user experiences:
 - AWS SDK for S3 uploads
 - JSON Web Token decoding for role-based route checks
 
-## Architecture
+#### Database
 
-### Frontend
-The frontend uses the App Router and is separated into:
+- Database: PostgreSQL with PostGIS for geospatial property data
 
-- **`(nondashboard)`** for public pages such as the landing page and property search
-- **`(dashboard)`** for tenant and manager dashboards
-- **`(auth)`** for Cognito-based authentication setup
+#### Data model
 
-Global search and UI state is managed with Redux, while data fetching is handled through RTK Query.
-
-### Backend
-The backend exposes resource-based routes for:
-
-- `properties`
-- `applications`
-- `leases`
-- `tenants`
-- `managers`
-
-Manager and tenant routes are protected with role-aware middleware, while manager-only property creation is enforced at the route level.
-
-### Data model
 The Prisma schema models the main rental entities:
 
 - `Property`
@@ -122,12 +221,14 @@ It also supports:
 - many-to-many tenant/property occupancy relationships
 - geographic coordinates stored as `geography(Point, 4326)`
 
-## Notable implementation details
+## 9. Notable implementation details
 
 ### Search and map experience
+
 The search UI pushes filter state into the URL, syncs it with Redux state, and requests filtered property data from the API. On the backend, the property query supports filtering by favorites, price range, beds, baths, property type, square footage, amenities, availability, and coordinates. Map markers are rendered from the returned property location data.
 
 ### Property creation flow
+
 Managers create a property through a multipart form. The backend:
 
 1. receives uploaded images,
@@ -137,39 +238,13 @@ Managers create a property through a multipart form. The backend:
 5. creates the property record and links it to the manager.
 
 ### Application workflow
+
 A tenant can submit an application from a property detail page. The backend creates the application and associated lease data, and managers can later approve or deny applications from their dashboard.
 
-## Project structure
-
-```text
-real_estate_rentation/
-├── client/
-│   ├── src/app/
-│   │   ├── (auth)/
-│   │   ├── (dashboard)/
-│   │   │   ├── managers/
-│   │   │   └── tenants/
-│   │   └── (nondashboard)/
-│   │       ├── landing/
-│   │       └── search/
-│   └── package.json
-├── server/
-│   ├── prisma/
-│   │   ├── migrations/
-│   │   ├── schema.prisma
-│   │   └── seed.ts
-│   ├── src/
-│   │   ├── controllers/
-│   │   ├── middleware/
-│   │   ├── routes/
-│   │   └── index.ts
-│   └── package.json
-└── package.json
-```
-
-## Local setup
+## 10. Local setup
 
 ### Prerequisites
+
 - Node.js
 - npm
 - PostgreSQL
@@ -178,13 +253,15 @@ real_estate_rentation/
 - Mapbox access token
 - Amazon S3 bucket for uploaded property images
 
-### 1. Clone the repository
+#### 1. Clone the repository
+
 ```bash
 git clone <your-repo-url>
 cd real_estate_rentation
 ```
 
-### 2. Install dependencies
+#### 2. Install dependencies
+
 Install separately for the frontend and backend:
 
 ```bash
@@ -195,32 +272,13 @@ cd ../server
 npm install
 ```
 
-### 3. Configure environment variables
-Create environment files for both apps.
+#### 3. Configure environment variables
 
-#### Client
-Based on the frontend code, the client needs values for:
+Create two environment files .env according to .env.example for both apps.
+use AWS Cognito to provide relevant env variable.
 
-```env
-NEXT_PUBLIC_API_BASE_URL=
-NEXT_PUBLIC_AWS_COGNITO_USER_POOL_ID=
-NEXT_PUBLIC_AWS_COGNITO_USER_POOL_CLIENT_ID=
-NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=
-```
+#### 4. Generate Prisma client and run the database
 
-#### Server
-Based on the backend code, the server needs values for:
-
-```env
-DATABASE_URL=
-PORT=3002
-AWS_REGION=
-S3_BUCKET_NAME=
-```
-
-> Depending on your AWS / auth setup, you may also need additional credentials or deployment-specific variables that are not committed to the repository.
-
-### 4. Generate Prisma client and run the database
 ```bash
 cd server
 npx prisma generate
@@ -228,38 +286,24 @@ npx prisma migrate dev
 npm run seed
 ```
 
-### 5. Start the backend
+#### 5. Start the backend
+
 ```bash
 cd server
 npm run dev
 ```
 
-### 6. Start the frontend
+#### 6. Start the frontend
+
 ```bash
 cd client
 npm run dev
 ```
 
-## Available scripts
+## 11. About the project
 
-### Client
-```bash
-npm run dev
-npm run build
-npm run start
-npm run lint
-```
+#### Current strengths
 
-### Server
-```bash
-npm run build
-npm run start
-npm run dev
-npm run seed
-npm run prisma:generate
-```
-
-## Current strengths
 - Clear separation between frontend and backend
 - Real-world domain modelling for rentals, applications, leases, and payments
 - PostGIS-backed location handling
@@ -267,19 +311,11 @@ npm run prisma:generate
 - Map-based property exploration
 - File upload and cloud storage integration
 
-## Suggested next improvements
-- Add a root-level `.gitignore` cleanup if `node_modules` or generated files are committed
+#### Suggested next improvements
+
 - Add API documentation for backend endpoints
 - Add screenshots or a short demo GIF
-- Add automated tests for filtering, auth middleware, and application workflows
+- Add a short architecture diagram
+- seed/demo credentials for reviewer access.
 - Tighten token verification in the auth middleware if this moves toward production use
 - Add deployment instructions for the frontend and backend
-
-## Notes
-This README is written from the current repository structure and implementation. If you continue building the project, the most valuable next upgrade for GitHub presentation would be adding:
-
-1. screenshots,
-2. a short architecture diagram,
-3. a deployed demo link,
-4. seed/demo credentials for reviewer access.
-

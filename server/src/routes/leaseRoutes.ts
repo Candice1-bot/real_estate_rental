@@ -1,7 +1,7 @@
 import express from "express";
 
 import { getLeases, getLeasePayments } from "../controllers/leaseController";
-import { authMiddleware } from "../middleware/authMiddleware";
+import { authMiddleware } from "../middlewares/authMiddleware";
 
 const router = express.Router();
 

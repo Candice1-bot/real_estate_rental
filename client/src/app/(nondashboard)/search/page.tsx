@@ -16,10 +16,10 @@ const SearchPage = () => {
   const dispatch = useAppDispatch();
 
   const isFiltersFullOpen = useAppSelector(
-    (state) => state.global.isFiltersFullOpen
+    (state) => state.global.isFiltersFullOpen,
   );
 
-  // when you come to the page, you wan the initail filters for the search to be all cleaned up and properly set for our global state
+  // when you come to the page, you want the initail filters for the search to be all cleaned up and properly set for our global state
   useEffect(() => {
     const initialFilters = Array.from(searchParams.entries()).reduce(
       (acc: any, [key, value]) => {
@@ -32,7 +32,7 @@ const SearchPage = () => {
         }
         return acc;
       },
-      {}
+      {},
     );
 
     const cleanFilters = cleanParams(initialFilters);
